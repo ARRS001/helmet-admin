@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_dashboard -> showDashboard()
                 R.id.nav_devices -> showDevices()
+                R.id.nav_alarms -> showAlarms()
                 R.id.nav_accounts -> showAccounts()
                 R.id.nav_monitor -> showMonitor()
             }
@@ -159,6 +160,70 @@ class MainActivity : AppCompatActivity() {
             putExtra("deviceId", device["deviceId"] as? String ?: "")
             putExtra("deviceName", (device["personnelName"] as? String) ?: (device["deviceId"] as? String) ?: "")
         })
+    }
+
+    // ── Alarms ──
+    private val alarmList = mutableListOf<Map<String, Any?>>()
+    private lateinit var alarmAdapter: AlarmAdapter
+    private var alarmFilter = ""
+
+    private fun showAlarms() {
+        val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(16, 12, 16, 8) }
+        val statusSpinner = Spinner(this).apply {
+            adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_item, listOf("全部", "未处理", "已处理")).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            setSelection(0)
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, pos: Int, p3: Long) { loadAlarms() }
+                override fun onNothingSelected(p0: AdapterView<*>?) {}
+            }
+        }
+        bar.addView(statusSpinner, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 8 })
+
+        val rv = RecyclerView(this).apply { layoutManager = LinearLayoutManager(this@MainActivity) }
+        alarmAdapter = AlarmAdapter(alarmList) { alarm -> handleAlarm(alarm) }
+        rv.adapter = alarmAdapter
+
+        ll.addView(bar); ll.addView(rv)
+        container.removeAllViews(); container.addView(ll)
+        views["alarms"] = ll
+        loadAlarms()
+    }
+
+    private fun loadAlarms() {
+        scope.launch {
+            try {
+                val params = mutableMapOf("limit" to "200")
+                val spinner = (findViewById<ViewGroup>(R.id.fragmentContainer).getChildAt(0) as? ViewGroup)?.let { vg ->
+                    for (i in 0 until vg.childCount) { if (vg.getChildAt(i) is Spinner) return@let vg.getChildAt(i) as Spinner }; null
+                } ?: return@launch
+                val statusIdx = spinner.selectedItemPosition
+                if (statusIdx == 1) params["handled"] = "0"
+                else if (statusIdx == 2) params["handled"] = "1"
+                val r = ApiService.alarmList(params)
+                if (r.code == 0) {
+                    @Suppress("UNCHECKED_CAST")
+                    alarmList.clear()
+                    alarmList.addAll((r.data?.get("list") as? List<Map<String, Any?>>) ?: emptyList())
+                    alarmAdapter.notifyDataSetChanged()
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun handleAlarm(alarm: Map<String, Any?>) {
+        val handled = (alarm["handled"] as? Number)?.toInt() == 1
+        if (handled) return
+        val id = alarm["id"] as? String ?: return
+        AlertDialog.Builder(this).setTitle("处理告警")
+            .setMessage("${alarm["type"]}: ${alarm["message"]}")
+            .setPositiveButton("标记已处理") { _, _ ->
+                scope.launch {
+                    val r = ApiService.alarmHandle(id)
+                    if (r.code == 0) { Toast.makeText(this@MainActivity, "已处理", Toast.LENGTH_SHORT).show(); loadAlarms() }
+                    else Toast.makeText(this@MainActivity, r.msg ?: "失败", Toast.LENGTH_SHORT).show()
+                }
+            }.setNegativeButton("取消", null).show()
     }
 
     // ── Accounts ──
@@ -352,6 +417,35 @@ class AccountAdapter(private val list: List<Map<String, Any?>>, private val myLe
         val canDel = (myLevel == 0 && level > 0) || (a["parentId"] as? String == myId)
         if (canDel) vh.card.setOnLongClickListener { onDelete(a["id"] as? String ?: ""); true }
         else vh.card.setOnLongClickListener(null)
+    }
+    override fun getItemCount() = list.size
+}
+
+class AlarmAdapter(private val list: List<Map<String, Any?>>, private val onHandle: (Map<String, Any?>) -> Unit) : RecyclerView.Adapter<AlarmAdapter.VH>() {
+    class VH(val card: MaterialCardView) : RecyclerView.ViewHolder(card)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(MaterialCardView(parent.context).apply {
+        radius = 8f; setContentPadding(12, 10, 12, 10); cardElevation = 1f
+        layoutParams = ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(16, 4, 16, 4) }
+    })
+    override fun onBindViewHolder(vh: VH, pos: Int) {
+        val a = list[pos]; val ctx = vh.card.context
+        val handled = (a["handled"] as? Number)?.toInt() == 1
+        val ts = (a["timestamp"] as? String)?.take(16)?.replace("T", " ") ?: ""
+        val ll = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
+        val row1 = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        row1.addView(TextView(ctx).apply {
+            text = "${a["type"] ?: "告警"} ${if (handled) "✓" else "⚠"}"
+            textSize = 14f; setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(if (handled) 0xFF8896A6.toInt() else 0xFFC62828.toInt())
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        })
+        row1.addView(TextView(ctx).apply { text = ts; textSize = 10f; setTextColor(0xFF8896A6.toInt()) })
+        ll.addView(row1)
+        ll.addView(TextView(ctx).apply { text = "${a["message"] ?: ""}"; textSize = 12f; setTextColor(0xFF8896A6.toInt()) })
+        ll.addView(TextView(ctx).apply { text = "设备: ${a["deviceId"] ?: "-"}"; textSize = 11f; setTextColor(0xFF5f6b7a.toInt()) })
+        if (vh.card.childCount > 0) vh.card.removeAllViews()
+        vh.card.addView(ll)
+        if (!handled) vh.card.setOnClickListener { onHandle(a) }
     }
     override fun getItemCount() = list.size
 }

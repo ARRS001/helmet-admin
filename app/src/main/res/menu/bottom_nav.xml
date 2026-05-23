@@ -2,6 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/nav_dashboard" android:title="仪表盘" android:icon="@android:drawable/ic_menu_compass"/>
     <item android:id="@+id/nav_devices" android:title="设备" android:icon="@android:drawable/ic_menu_camera"/>
+    <item android:id="@+id/nav_alarms" android:title="告警" android:icon="@android:drawable/ic_dialog_alert"/>
     <item android:id="@+id/nav_accounts" android:title="账号" android:icon="@android:drawable/ic_menu_manage"/>
     <item android:id="@+id/nav_monitor" android:title="监控" android:icon="@android:drawable/ic_menu_view"/>
 </menu>
