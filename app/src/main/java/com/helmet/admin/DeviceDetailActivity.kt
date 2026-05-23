@@ -64,7 +64,7 @@ class DeviceDetailActivity : AppCompatActivity() {
     private fun showInfo() {
         val d = detailData ?: return
         val sv = ScrollView(this)
-        val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16) }
+        val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16, 16, 16, 16) }
 
         ll.addView(section("基本信息"))
         ll.addView(row("设备ID", d["deviceId"]))
@@ -131,7 +131,7 @@ class DeviceDetailActivity : AppCompatActivity() {
 
     private fun showRecordings() {
         val sv = ScrollView(this)
-        val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16) }
+        val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16, 16, 16, 16) }
         ll.addView(section("录制文件"))
         ll.addView(TextView(this).apply { text = "加载中..."; textSize = 12f; setTextColor(0xFF8896A6.toInt()); tag = "loading" })
         sv.addView(ll)
@@ -172,7 +172,7 @@ class DeviceDetailActivity : AppCompatActivity() {
 
     private fun showScreenshots() {
         val sv = ScrollView(this)
-        val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16) }
+        val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16, 16, 16, 16) }
         ll.addView(section("截图"))
         ll.addView(TextView(this).apply { text = "加载中..."; textSize = 12f; setTextColor(0xFF8896A6.toInt()) })
         sv.addView(ll)
@@ -210,7 +210,7 @@ class DeviceDetailActivity : AppCompatActivity() {
 
     private fun showCallRecords() {
         val sv = ScrollView(this)
-        val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16) }
+        val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16, 16, 16, 16) }
         ll.addView(section("通话记录"))
         ll.addView(TextView(this).apply { text = "加载中..."; textSize = 12f; setTextColor(0xFF8896A6.toInt()) })
         sv.addView(ll)
@@ -233,7 +233,7 @@ class DeviceDetailActivity : AppCompatActivity() {
                     val caller = c["callerName"] ?: "?"
                     ll.addView(TextView(this@DeviceDetailActivity).apply {
                         text = "$type $caller · ${statusLabel[status] ?: status}"
-                        textSize = 12f; setTextColor(0xFF8896A6.toInt()); setPadding(4)
+                        textSize = 12f; setTextColor(0xFF8896A6.toInt()); setPadding(4, 4, 4, 4)
                     })
                     ll.addView(TextView(this@DeviceDetailActivity).apply {
                         text = "  $start"; textSize = 10f; setTextColor(0xFF5f6b7a.toInt()); setPadding(4, 0, 4, 8)

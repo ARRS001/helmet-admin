@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
 
     // ── Dashboard ──
     private fun showDashboard() {
-        val sv = ScrollView(this).apply { setPadding(16) }
+        val sv = ScrollView(this).apply { setPadding(16, 16, 16, 16) }
         val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         val statsCard = card("")
         val statsGrid = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -103,7 +103,7 @@ class MainActivity : AppCompatActivity() {
     private fun showDevices() {
         val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(16, 12, 16, 8) }
-        val searchEt = EditText(this).apply { hint = "搜索设备ID/人员"; setPadding(12); layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 8 } }
+        val searchEt = EditText(this).apply { hint = "搜索设备ID/人员"; setPadding(12, 12, 12, 12); layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 8 } }
         val addBtn = MaterialButton(this).apply { text = "添加"; setBackgroundColor(0xFF5b9cf5.toInt()); setTextColor(0xFFFFFFFF.toInt()); textSize = 12f }
         bar.addView(searchEt); bar.addView(addBtn)
 
@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAddDeviceDialog() {
-        val form = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16) }
+        val form = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16, 16, 16, 16) }
         val nameEt = editField("人员名称", form)
         val phoneEt = editField("手机号", form)
         AlertDialog.Builder(this).setTitle("添加设备")
@@ -265,7 +265,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAddAccountDialog() {
-        val form = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16) }
+        val form = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(16, 16, 16, 16) }
         val usernameEt = editField("用户名", form)
         val passwordEt = editField("密码", form)
         val typeGroup = RadioGroup(this).apply { orientation = RadioGroup.HORIZONTAL
@@ -334,8 +334,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ── Helpers ──
-    private fun statBox(title: String, value: String): View {
-        val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER; setPadding(8) }
+    private fun statBox(title: String, value: String): LinearLayout {
+        val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER; setPadding(8, 8, 8, 8) }
         ll.addView(TextView(this).apply { text = title; textSize = 11f; setTextColor(0xFF8896A6.toInt()) })
         ll.addView(TextView(this).apply { text = value; textSize = 20f; setTextColor(0xFF1B2A4A.toInt()); setTypeface(null, android.graphics.Typeface.BOLD) })
         return ll
@@ -351,13 +351,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun card(title: String): MaterialCardView {
         return MaterialCardView(this).apply {
-            radius = 8f; setContentPadding(12, 8, 12, 8); cardElevation = 2f; setPadding(4)
+            radius = 8f; setContentPadding(12, 8, 12, 8); cardElevation = 2f; setPadding(4, 4, 4, 4)
             addView(LinearLayout(this@MainActivity).apply { orientation = LinearLayout.VERTICAL })
         }
     }
 
     private fun editField(hint: String, parent: ViewGroup): EditText {
-        val et = EditText(this).apply { this.hint = hint; setPadding(12); setSingleLine() }
+        val et = EditText(this).apply { this.hint = hint; setPadding(12, 12, 12, 12); setSingleLine(true) }
         parent.addView(TextInputLayout(this).apply { boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE; addView(et); layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = 8 } })
         return et
     }
