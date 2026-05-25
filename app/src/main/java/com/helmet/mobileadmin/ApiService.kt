@@ -8,13 +8,27 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 object ApiService {
     var serverBase: String = ""
         private set
     private var _client: OkHttpClient? = null
     private var _clientHost: String? = null
+
+    private val trustAllCerts: Array<TrustManager> = arrayOf(object : X509TrustManager {
+        override fun checkClientTrusted(c: Array<X509Certificate>?, a: String?) {}
+        override fun checkServerTrusted(c: Array<X509Certificate>?, a: String?) {}
+        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+    })
+    private val trustAllSslContext = SSLContext.getInstance("TLS").apply {
+        init(null, trustAllCerts, java.security.SecureRandom())
+    }
+
     private val client: OkHttpClient
         get() {
             val host = serverBase.removePrefix("https://").removePrefix("http://").removeSuffix("/")
@@ -24,7 +38,8 @@ object ApiService {
                     .readTimeout(15, TimeUnit.SECONDS)
                     .retryOnConnectionFailure(true)
                     .connectionPool(ConnectionPool(2, 30, TimeUnit.SECONDS))
-                    .hostnameVerifier { hn, _ -> hn == host }
+                    .sslSocketFactory(trustAllSslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+                    .hostnameVerifier { _, _ -> true }
                     .build()
                 _clientHost = host
             }
