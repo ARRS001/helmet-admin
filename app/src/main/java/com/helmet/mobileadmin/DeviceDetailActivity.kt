@@ -76,7 +76,6 @@ class DeviceDetailActivity : AppCompatActivity() {
         val streaming = (d["streaming"] as? Number)?.toInt() == 1
         ll.addView(row("状态", if (streaming) "推流中" else if (online) "在线" else "离线"))
 
-        // 生命体征
         @Suppress("UNCHECKED_CAST")
         val vital = d["vitalSigns"] as? Map<String, Any?>
         if (vital != null) {
@@ -86,7 +85,6 @@ class DeviceDetailActivity : AppCompatActivity() {
             ll.addView(row("血氧", "${(vital["bloodOxygen"] as? Number)?.toInt() ?: "-"}%"))
         }
 
-        // 气体数据
         @Suppress("UNCHECKED_CAST")
         val gas = d["gasData"] as? Map<String, Any?>
         if (gas != null) {
@@ -96,7 +94,6 @@ class DeviceDetailActivity : AppCompatActivity() {
             ll.addView(row("O2", "${gas["o2"] ?: "-"}%"))
         }
 
-        // 账户绑定
         ll.addView(section("账户绑定"))
         @Suppress("UNCHECKED_CAST")
         val user = d["assignedUser"] as? Map<String, Any?>

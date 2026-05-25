@@ -27,7 +27,6 @@ class MonitorActivity : AppCompatActivity() {
         }
         root.addView(label)
 
-        // HLS 播放器
         val videoView = VideoView(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f
