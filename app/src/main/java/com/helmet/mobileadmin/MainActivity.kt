@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.setPadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -22,7 +21,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var container: FrameLayout
     private lateinit var tvUserInfo: TextView
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private val views = mutableMapOf<String, View>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +75,6 @@ class MainActivity : AppCompatActivity() {
         ll.addView(quickBtns)
         sv.addView(ll)
         container.removeAllViews(); container.addView(sv)
-        views["dashboard"] = sv
 
         scope.launch {
             try {
@@ -99,6 +96,7 @@ class MainActivity : AppCompatActivity() {
     // ── Devices ──
     private val deviceList = mutableListOf<Map<String, Any?>>()
     private lateinit var deviceAdapter: DeviceAdapter
+    private var monitorAdapter: RecyclerView.Adapter<MonitorHolder>? = null
 
     private fun showDevices() {
         val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -113,7 +111,6 @@ class MainActivity : AppCompatActivity() {
 
         ll.addView(bar); ll.addView(rv)
         container.removeAllViews(); container.addView(ll)
-        views["devices"] = ll
 
         addBtn.setOnClickListener { showAddDeviceDialog() }
         loadDevices()
@@ -128,6 +125,7 @@ class MainActivity : AppCompatActivity() {
                     deviceList.clear()
                     deviceList.addAll((r.data?.get("list") as? List<Map<String, Any?>>) ?: emptyList())
                     deviceAdapter.notifyDataSetChanged()
+                    monitorAdapter?.notifyDataSetChanged()
                 }
             } catch (_: Exception) {}
         }
@@ -165,8 +163,6 @@ class MainActivity : AppCompatActivity() {
     // ── Alarms ──
     private val alarmList = mutableListOf<Map<String, Any?>>()
     private lateinit var alarmAdapter: AlarmAdapter
-    private var alarmFilter = ""
-
     private fun showAlarms() {
         val ll = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(16, 12, 16, 8) }
@@ -186,7 +182,6 @@ class MainActivity : AppCompatActivity() {
 
         ll.addView(bar); ll.addView(rv)
         container.removeAllViews(); container.addView(ll)
-        views["alarms"] = ll
         loadAlarms()
     }
 
@@ -244,7 +239,6 @@ class MainActivity : AppCompatActivity() {
 
         ll.addView(bar); ll.addView(rv)
         container.removeAllViews(); container.addView(ll)
-        views["accounts"] = ll
 
         addBtn.setOnClickListener { showAddAccountDialog() }
         loadAccounts()
@@ -314,7 +308,7 @@ class MainActivity : AppCompatActivity() {
         ll.addView(bar)
 
         val rv = RecyclerView(this).apply { layoutManager = LinearLayoutManager(this@MainActivity) }
-        rv.adapter = object : RecyclerView.Adapter<MonitorHolder>() {
+        rv.adapter = (object : RecyclerView.Adapter<MonitorHolder>() {
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = MonitorHolder(TextView(parent.context).apply { setPadding(16,12,16,12); textSize = 14f })
             override fun onBindViewHolder(h: MonitorHolder, pos: Int) {
                 val d = deviceList.getOrNull(pos) ?: return
@@ -327,7 +321,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             override fun getItemCount() = deviceList.size
-        }
+        }).also { monitorAdapter = it }
         ll.addView(rv)
         container.removeAllViews(); container.addView(ll)
         loadDevices()
